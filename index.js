@@ -8,10 +8,6 @@ app.use(cors());
 const SHEET_WEBHOOK_URL = "https://script.google.com/a/macros/tnsdc.in/s/AKfycbxT8OLbnezsaw1JmakHBRwjd4suE64D2r5sh8M5ocHtOz8ORMZgIf0Xlmy2mWyhL7se/exec";
 
 app.get('/', (req, res) => {
-  res.send('Click Logger API is live');
-});
-
-app.get('/', (req, res) => {
   res.send('Tamilnadu Skill Development Corporation. Use /track');
 });
 
@@ -66,29 +62,4 @@ function getBrowser(userAgent) {
 app.listen(port, () => {
   console.log(`Click Logger API listening at http://localhost:${port}`);
 });
-
-app.get('/track', async (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const userAgent = req.headers['user-agent'];
-  const parser = new UAParser(userAgent);
-  const ua = parser.getResult();
-
-  const os = `${ua.os.name} ${ua.os.version}`;
-  const browser = `${ua.browser.name} ${ua.browser.version}`;
-
-  let location = {};
-  try {
-    const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-    location = await geoRes.json();
-  } catch (err) {
-    location = { error: 'Location fetch failed' };
-  }
-
-  res.json({ ip, userAgent, os, browser, location });
-});
-
-app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}/track`);
-});
-
 module.exports = app;
