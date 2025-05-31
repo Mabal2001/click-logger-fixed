@@ -4,15 +4,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send('TNSKILL, 8th Floor, CMRL Building, METROS,
-
-No.327 Anna Salai, Nandanam, Chennai – 600035.
-
-Helpline Number: 044-22500107
-
-We are avilable from 10.00 AM to 06.00 PM
-
-servicedesk@tnsdc.in /track');
+  res.send('Tamilnadu Skill Development Corporation. Use /track');
 });
 
 app.get('/track', async (req, res) => {
