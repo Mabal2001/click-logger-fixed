@@ -1,34 +1,64 @@
 const express = require('express');
-const UAParser = require('ua-parser-js');
+const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
+
+app.use(cors());
+
+const SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbXYZ.../exec";
 
 app.get('/', (req, res) => {
-  res.send('Tamilnadu Skill Development Corporation. Use /track');
+  res.send('Click Logger API is live');
 });
 
 app.get('/track', async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const userAgent = req.headers['user-agent'];
-  const parser = new UAParser(userAgent);
-  const ua = parser.getResult();
+  const userAgent = req.headers['user-agent'] || '';
 
-  const os = `${ua.os.name} ${ua.os.version}`;
-  const browser = `${ua.browser.name} ${ua.browser.version}`;
+  const os = getOS(userAgent);
+  const browser = getBrowser(userAgent);
 
-  let location = {};
-  try {
-    const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-    location = await geoRes.json();
-  } catch (err) {
-    location = { error: 'Location fetch failed' };
-  }
+  const locationRes = await fetch(`https://ipapi.co/${ip}/json`);
+  const location = await locationRes.json();
 
-  res.json({ ip, userAgent, os, browser, location });
+  const log = {
+    ip,
+    os,
+    browser,
+    userAgent,
+    location
+  };
+
+  // Send to Google Sheets
+  await fetch(SHEET_WEBHOOK_URL, {
+    method: 'POST',
+    body: JSON.stringify(log),
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  res.json(log);
 });
+
+// Utility: Parse OS
+function getOS(userAgent) {
+  if (/Windows NT/.test(userAgent)) return "Windows";
+  if (/Mac OS X/.test(userAgent)) return "macOS";
+  if (/Linux/.test(userAgent)) return "Linux";
+  if (/Android/.test(userAgent)) return "Android";
+  if (/iPhone|iPad/.test(userAgent)) return "iOS";
+  return "Unknown";
+}
+
+// Utility: Parse Browser
+function getBrowser(userAgent) {
+  if (/Chrome/.test(userAgent)) return "Chrome";
+  if (/Firefox/.test(userAgent)) return "Firefox";
+  if (/Safari/.test(userAgent) && !/Chrome/.test(userAgent)) return "Safari";
+  if (/Edge/.test(userAgent)) return "Edge";
+  if (/MSIE|Trident/.test(userAgent)) return "Internet Explorer";
+  return "Unknown";
+}
 
 app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}/track`);
+  console.log(`Click Logger API listening at http://localhost:${port}`);
 });
-
-module.exports = app;
